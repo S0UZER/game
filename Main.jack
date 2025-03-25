@@ -1,19 +1,9 @@
-class Main
-{
-   function void main()
-   {
-      var RaceGame game;
-
-      while (true)
-      {
-         do Screen.clearScreen();
-         do Sys.wait(250);
-         let game = RaceGame.new();
-         do game.run();
-         do game.dispose();
-      }
-
-      return; 
-      // pod zalupoi tworog sobralsa
-   }
+class Main {
+    function void main() {
+        var GameEngine game;
+        let game = GameEngine.new();
+        do game.run();
+        do game.dispose();
+        return;
+    }
 }
