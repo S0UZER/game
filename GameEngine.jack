@@ -1,0 +1,173 @@
+class GameEngine {
+    field Evnux player;
+    field Array zombies;
+    field int zombieCount;
+    field int score;
+    field boolean isRunning;
+    field Keyboard keyboard;
+    field Screen screen;
+    field Random random;
+    
+    constructor GameEngine new() {
+        let player = Evnux.new(100, 100);
+        let zombieCount = 10;
+        let zombies = Array.new(zombieCount);
+        
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            let zombies[i] = Zombie.new(0, 0);
+            do zombies[i].die(); // Изначально зомби неактивны
+            let i = i + 1;
+        }
+        
+        let keyboard = Keyboard.new();
+        let screen = Screen.new();
+        let random = Random.new(42);
+        let score = 0;
+        let isRunning = true;
+        
+        return this;
+    }
+    
+    method void run() {
+        do screen.clearScreen();
+        do spawnInitialZombies();
+        
+        while (isRunning) {
+            do handleInput();
+            do updateGame();
+            do render();
+            do Sys.wait(50); // Задержка для контроля скорости игры
+        }
+        
+        do showGameOver();
+        return;
+    }
+    
+    method void spawnInitialZombies() {
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            do spawnZombie(i);
+            let i = i + 1;
+        }
+    }
+    
+    method void spawnZombie(int index) {
+        var int x, y;
+        let x = 400;
+        let y = random.nextInt(200);
+        do zombies[index].reborn(x, y);
+    }
+    
+    method void handleInput() {
+        var int key;
+        let key = keyboard.keyPressed();
+        
+        if (key = 131) { do player.move(0, -5); } // Вверх
+        if (key = 133) { do player.move(0, 5); }  // Вниз
+        if (key = 130) { do player.move(-5, 0); } // Влево
+        if (key = 132) { do player.move(5, 0); }  // Вправо
+        if (key = 140) { let isRunning = false; } // ESC - выход
+    }
+    
+    method void updateGame() {
+        do moveZombies();
+        do checkCollisions();
+        do respawnDeadZombies();
+    }
+    
+    method void moveZombies() {
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            if (zombies[i].isAlive()) {
+                do zombies[i].move(-2, 0); // Движение зомби влево
+                
+                if (~(zombies[i].onScreen())) {
+                    do zombies[i].die();
+                    let score = score + 1;
+                }
+            }
+            let i = i + 1;
+        }
+    }
+    
+    method void checkCollisions() {
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            if (zombies[i].isAlive()) {
+                if (Utils.checkCollision(
+                    player.GetX(), player.GetY(), player.GetX() + 16, player.GetY() + 32,
+                    zombies[i].GetX(), zombies[i].GetY(), zombies[i].GetX() + 16, zombies[i].GetY() + 32
+                )) {
+                    let isRunning = false;
+                }
+            }
+            let i = i + 1;
+        }
+    }
+    
+    method void respawnDeadZombies() {
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            if (~(zombies[i].isAlive())) {
+                do spawnZombie(i);
+            }
+            let i = i + 1;
+        }
+    }
+    
+    method void render() {
+        do screen.clearScreen();
+        do player.draw();
+        
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            if (zombies[i].isAlive()) {
+                do zombies[i].draw();
+            }
+            let i = i + 1;
+        }
+        
+        do drawHUD();
+    }
+    
+    method void drawHUD() {
+        do screen.drawText(10, 10, "Score: ");
+        do screen.drawNumber(70, 10, score);
+    }
+    
+    method void showGameOver() {
+        do screen.clearScreen();
+        do screen.drawText(100, 100, "GAME OVER");
+        do screen.drawText(100, 120, "Final Score: ");
+        do screen.drawNumber(220, 120, score);
+        do screen.drawText(100, 140, "Press ENTER to exit");
+        
+        while (~(keyboard.keyPressed() = 128)) {
+            do Sys.wait(10);
+        }
+    }
+    
+    method void dispose() {
+        do player.dispose();
+        
+        var int i;
+        let i = 0;
+        while (i < zombieCount) {
+            do zombies[i].dispose();
+            let i = i + 1;
+        }
+        
+        do Memory.deAlloc(zombies);
+        do keyboard.dispose();
+        do screen.dispose();
+        do random.dispose();
+        do Memory.deAlloc(this);
+    }
+}
