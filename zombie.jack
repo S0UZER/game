@@ -1,0 +1,79 @@
+class Zombie { // EnemyCar
+    field int x, y;
+    field int xSize, ySize;
+    field boolean alive;
+    field int animState;
+    
+    constructor Zombie new(int Ax, int Ay) {
+        let xSize = 16;  // Ширина зомби
+        let ySize = 32;  // Высота зомби
+        let animState = 0;
+        do reborn(Ax, Ay);
+        return this;
+    }
+
+    method boolean onScreen() {
+        return (((1 < x) & ((x + xSize) < 508)) & ((1 < y) & ((y + ySize) < 255)));
+    }
+    
+    method int GetX() { return x; }
+    method int GetY() { return y; }
+    method boolean isAlive() { return alive; }
+
+    method void reborn(int Ax, int Ay) {
+        let alive = true;
+        let x = Ax;
+        let y = Ay;
+        return;
+    }
+
+    method void die() {
+        let x = 0;
+        let y = 0;
+        let alive = false;
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void draw() {
+        // Голова зомби (8x8)
+        do Utils.drawRectangleByOffset(4, 0, 11, 7, x, y);  // Основная форма
+        do Utils.drawPixelByOffset(5, 1, x, y);             // Левый глаз
+        do Utils.drawPixelByOffset(10, 1, x, y);            // Правый глаз
+        do Utils.drawLineByOffset(6, 3, 9, 3, x, y);        // Рот
+        
+        // Тело зомби (8x16)
+        do Utils.drawRectangleByOffset(2, 8, 13, 23, x, y); // Туловище
+        do Utils.drawLineByOffset(1, 9, 1, 12, x, y);       // Левая рука
+        do Utils.drawLineByOffset(14, 9, 14, 12, x, y);     // Правая рука
+        
+        // Ноги зомби (8x8)
+        if (animState = 0){
+            do Utils.drawLineByOffset(4, 24, 4, 28, x, y);   // Левая нога (короткая)
+            do Utils.drawLineByOffset(11, 24, 11, 31, x, y); // Правая нога (полная)
+            do Utils.drawPixelByOffset(3, 28, x, y);       // Правая нога
+        }
+        else {
+            do Utils.drawLineByOffset(4, 24, 4, 31, x, y);  // Левая нога (полная)
+            do Utils.drawLineByOffset(11, 24, 11, 28, x, y); // Правая нога (короткая)
+            do Utils.drawPixelByOffset(12, 28, x, y);        // Ступня правой ноги
+        }
+        // Кровь и повреждения
+        do Utils.drawPixelByOffset(3, 5, x, y);            // Кровь на голове
+        do Utils.drawPixelByOffset(12, 15, x, y);           // Кровь на теле
+        do Utils.drawPixelByOffset(7, 28, x, y);            // Кровь на ноге
+      
+        let animState = 1 - animState;
+        return;
+    }
+
+    method void move(int dx, int dy) {
+        let y = y + dy;
+        let x = x + dx;
+        return;
+    }
+}
