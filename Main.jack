@@ -1,9 +1,8 @@
 class Main {
     function void main() {
-        var GameEngine game;
-        let game = GameEngine.new();
+        var ZombieGame game;
+        let game = ZombieGame.new();
         do game.run();
-        do game.dispose();
         return;
     }
 }
