@@ -1,0 +1,101 @@
+class ZombieGame {
+    field int playerX, playerY;  // Position of the player (human)
+    field int zombieX, zombieY;  // Position of the zombie
+    field int score;             // Score
+    field boolean isRunning;     // Game state
+    field int zombieSpeed;       // Speed of the zombie
+    field int screenWidth;       // Width of the screen
+
+    constructor ZombieGame new() {
+        let playerX = 240;         // Center the player
+        let playerY = 200;          // Position at the bottom
+        let zombieX = 10;
+        let zombieY = 10;         // Start at the top
+        let score = 0;
+        let isRunning = true;
+        let zombieSpeed = 2;
+        let screenWidth = 512;   // Standard screen width
+        return this;
+    }
+
+    method void run() {
+        var char key;
+
+        while (isRunning) {
+            // Input Handling
+            let key = Keyboard.keyPressed();
+            if ((key = 130) & (playerX > 0)) { let playerX = playerX - 5; } // Left, with boundary check
+            if ((key = 132) & (playerX < (screenWidth - 30))) { let playerX = playerX + 5; } // Right, with boundary check, account for player width
+
+            // Game Logic
+            do updateZombie();
+            do checkCollision();
+            do render();
+            do Sys.wait(20);  // Reduced wait time for smoother movement
+        }
+
+        do showGameOver();
+        return;
+    }
+
+    method void updateZombie() {
+        let zombieY = zombieY + zombieSpeed;  // Move zombie downwards
+
+        if (zombieY > 240) { //Zombie reaches the bottom
+            do resetZombie(); // Reset the zombie
+        }
+        return;
+    }
+
+    method void resetZombie() {
+        // Generate a random X position for the zombie
+        let zombieX = Math.randRange(0, (screenWidth - 20)); // Ensure the zombie stays within screen boundaries.
+        let zombieY = 10; // Reset to the top
+        let zombieSpeed = 2; //reset zombie speed
+        let score = score + 1; //increment the score
+        return;
+    }
+
+    method void checkCollision() {
+        if ((zombieY > playerY) & (zombieY < playerY + 15) & // Check Y-axis collision
+            (zombieX > playerX) & (zombieX < playerX + 30)) { //Check X-axis collision
+            let isRunning = false;
+            return;
+        }
+        return;
+    }
+
+    method void render() {
+        do Screen.clearScreen();
+
+        // Draw Player (Human) - Rectangle
+        do Screen.setColor(true);
+        do Screen.drawRectangle(playerX, playerY, playerX + 30, playerY + 15);
+
+        // Draw Zombie - Circle
+        do Screen.setColor(true);
+        do Screen.drawCircle(zombieX, zombieY, 10);
+
+        // Display Score
+        do Output.moveCursor(0, 0);
+        do Output.printString("Score: ");
+        do Output.printInt(score); //Display score.
+        return;
+    }
+
+    method void showGameOver() {
+        do Screen.clearScreen();
+        do Output.moveCursor(12, 10); // Center the text
+        do Output.printString("Game Over!");
+        do Output.moveCursor(14, 10); //move cursor
+        do Output.printString("Press any key to reset the game"); //ask for new game
+        do Output.moveCursor(8, 12);
+        do Output.printString("Your Score: ");
+        do Output.printInt(score);
+        do Sys.wait(2000);
+        //wait until the key is pressed
+        while (Keyboard.keyPressed() = 0) {}
+        do Main.main(); // Restart the game
+        return;
+    }
+}
